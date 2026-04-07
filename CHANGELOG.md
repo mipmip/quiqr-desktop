@@ -2,6 +2,8 @@
 
 ## Next Release
 
+## 0.23.0 (2026-04-07)
+
 - feature: unified frontend serving — standalone server serves both API and frontend from a single Express server
 - feature: JWT-based authentication for standalone mode with local file user provider
 - feature: login page, forced password change on first login, User menu with logout and change password
