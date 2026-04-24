@@ -56,6 +56,12 @@ export const PrefsSidebar = (props: PrefsSidebarProps) => {
       },
       {
         active: true,
+        label: 'Variables',
+        to: '/prefs/variables',
+        exact: true,
+      },
+      {
+        active: true,
         label: 'Feature Flags',
         to: '/prefs/appsettings-general',
         exact: true,

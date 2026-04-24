@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Fab from '@mui/material/Fab';
 import Button from '@mui/material/Button';
+import LoadingButton from '@mui/lab/LoadingButton';
 import CheckIcon from '@mui/icons-material/Check';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import BuildIcon from '@mui/icons-material/Build';
 import service from './../../services/service';
 import { FormProvider } from './FormProvider';
 import { FieldRenderer } from './FieldRenderer';
 import { PageAIAssistDialog } from './PageAIAssistDialog';
+import { BuildActionOutput } from './BuildActionOutput';
+import type { BuildOutput } from './BuildActionOutput';
 import { findFieldByPath, pathHasArrayIndex, getTopLevelKey } from '../../utils/findFieldByPath';
 import type { Field, BuildAction } from '@quiqr/types';
 import type { FormMeta } from './FormContext';
@@ -48,7 +52,7 @@ type SukohFormProps = {
   hideExternalEditIcon?: boolean;
   values: Record<string, unknown>;
   onOpenInEditor?: (context?: { reject: (message: string) => void }) => void;
-  onDocBuild?: (buildAction: BuildAction) => void;
+  onDocBuild?: (buildAction: BuildAction) => Promise<{ actionName: string; stdoutType?: string; stdoutContent: string }>;
   onSave?: (context: SaveContext) => void;
   hideSaveButton?: boolean;
   refreshed?: boolean;
@@ -66,6 +70,8 @@ export const SukohForm = ({
   prompt_templates,
   collectionItemKey,
   fields,
+  buildActions,
+  onDocBuild,
   pageUrl,
   values,
   onSave,
@@ -77,6 +83,8 @@ export const SukohForm = ({
   const [, setError] = useState<string | null>(null);
   const [savedOnce, setSavedOnce] = useState(false);
   const [aiAssistOpen, setAiAssistOpen] = useState(false);
+  const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
+  const [buildOutput, setBuildOutput] = useState<BuildOutput | null>(null);
   
   // For new form system - track document state and resources
   const newFormDocRef = useRef<Record<string, unknown>>(values || {});
@@ -164,6 +172,46 @@ export const SukohForm = ({
     [saveContent]
   );
 
+  const handleBuildAction = useCallback(
+    async (action: BuildAction) => {
+      if (!onDocBuild) return;
+
+      const actionKey = action.key;
+      setLoadingActions((prev) => new Set(prev).add(actionKey));
+
+      try {
+        // Auto-save if form is dirty
+        if (changed) {
+          saveContent();
+        }
+
+        const result = await onDocBuild(action);
+
+        setBuildOutput({
+          actionName: result.actionName,
+          success: true,
+          stdout: result.stdoutContent || '',
+          stderr: '',
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        setBuildOutput({
+          actionName: action.title || action.key,
+          success: false,
+          stdout: '',
+          stderr: message,
+        });
+      } finally {
+        setLoadingActions((prev) => {
+          const next = new Set(prev);
+          next.delete(actionKey);
+          return next;
+        });
+      }
+    },
+    [onDocBuild, changed, saveContent]
+  );
+
   let floatingActionButtonClass = 'animated';
   if (!savedOnce) floatingActionButtonClass += ' zoomIn';
   if (changed) floatingActionButtonClass += ' rubberBand';
@@ -197,35 +245,45 @@ export const SukohForm = ({
 
     // Check if AI Assist should be shown
     const hasPromptTemplates = prompt_templates && Array.isArray(prompt_templates) && prompt_templates.length > 0;
+    const hasBuildActions = buildActions && buildActions.length > 0;
 
     return (
       <>
+        {(hasPromptTemplates || hasBuildActions) && (
+          <div style={{ position: 'absolute', top: 142, right: 16, zIndex: 10, display: 'flex', gap: 8 }}>
+            {hasPromptTemplates && (
+              <Button
+                variant="contained"
+                startIcon={<AutoAwesomeIcon />}
+                onClick={() => setAiAssistOpen(true)}
+              >
+                PAGE ASSIST
+              </Button>
+            )}
+            {hasBuildActions && buildActions.map((action) => (
+              <LoadingButton
+                key={action.key}
+                variant="outlined"
+                startIcon={<BuildIcon />}
+                loading={loadingActions.has(action.key)}
+                onClick={() => handleBuildAction(action)}
+              >
+                {action.button_text || action.title || action.key}
+              </LoadingButton>
+            ))}
+          </div>
+        )}
         {hasPromptTemplates && (
-          <>
-            <Button
-              variant="contained"
-              startIcon={<AutoAwesomeIcon />}
-              onClick={() => setAiAssistOpen(true)}
-              sx={{
-                position: 'absolute',
-                top: 142,
-                right: 16,
-                zIndex: 10,
-              }}
-            >
-              PAGE ASSIST
-            </Button>
-            <PageAIAssistDialog
-              open={aiAssistOpen}
-              onClose={() => setAiAssistOpen(false)}
-              siteKey={siteKey}
-              workspaceKey={workspaceKey}
-              promptTemplateKeys={prompt_templates || []}
-              collectionKey={collectionKey}
-              collectionItemKey={collectionItemKey}
-              singleKey={singleKey}
-            />
-          </>
+          <PageAIAssistDialog
+            open={aiAssistOpen}
+            onClose={() => setAiAssistOpen(false)}
+            siteKey={siteKey}
+            workspaceKey={workspaceKey}
+            promptTemplateKeys={prompt_templates || []}
+            collectionKey={collectionKey}
+            collectionItemKey={collectionItemKey}
+            singleKey={singleKey}
+          />
         )}
         <FormProvider
           fields={fields}
@@ -277,6 +335,12 @@ export const SukohForm = ({
             ))
           )}
         </FormProvider>
+        {buildOutput && (
+          <BuildActionOutput
+            output={buildOutput}
+            onDismiss={() => setBuildOutput(null)}
+          />
+        )}
         {hideSaveButton ? null : fabButton}
         <div style={{ height: '70px' }}></div>
       </>

@@ -267,6 +267,20 @@ export function buildSingle(siteKey: string, workspaceKey: string, singleKey: st
   return request('buildSingle', {siteKey, workspaceKey, singleKey, buildAction});
 }
 
+/**
+ * Trigger a browser download for a file within the workspace's site directory.
+ * Uses a hidden anchor element to initiate the download from the file-download endpoint.
+ */
+export function fileDownload(siteKey: string, workspaceKey: string, filePath: string) {
+  const url = `/api/sites/${encodeURIComponent(siteKey)}/workspaces/${encodeURIComponent(workspaceKey)}/file-download?path=${encodeURIComponent(filePath)}`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
 export function updateCollectionItem(siteKey: string, workspaceKey: string, collectionKey: string, collectionItemKey: string, document: Record<string, unknown>){
   return request('updateCollectionItem', {siteKey, workspaceKey, collectionKey, collectionItemKey, document});
 }
@@ -833,6 +847,7 @@ export interface API {
   openCollectionItemInEditor: typeof openCollectionItemInEditor;
   buildCollectionItem: typeof buildCollectionItem;
   buildSingle: typeof buildSingle;
+  fileDownload: typeof fileDownload;
   updateCollectionItem: typeof updateCollectionItem;
   createCollectionItemKey: typeof createCollectionItemKey;
   deleteCollectionItem: typeof deleteCollectionItem;

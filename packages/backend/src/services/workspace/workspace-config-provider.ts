@@ -186,6 +186,10 @@ export class WorkspaceConfigProvider {
       throw new Error(validationError);
     }
 
+    // Normalize camelCase keys from site models to snake_case
+    // Existing site models use buildActions (camelCase) but the type system uses build_actions
+    this._normalizeCamelCaseKeys(dataPhase2Merged);
+
     // After successful validation, the config conforms to WorkspaceConfig
     // The cast is safe here because the validator has verified the structure
     return dataPhase2Merged as WorkspaceConfig;
@@ -576,5 +580,29 @@ export class WorkspaceConfigProvider {
 
   getEnvironmentInfo(): EnvironmentInfo {
     return this.environmentInfo;
+  }
+
+  /**
+   * Normalize camelCase keys from site model YAML to snake_case.
+   * Existing site models use buildActions (camelCase) but the type system uses build_actions.
+   */
+  private _normalizeCamelCaseKeys(config: PartialWorkspaceConfig): void {
+    const normalizeItem = (item: Record<string, unknown>) => {
+      if ('buildActions' in item && !('build_actions' in item)) {
+        item.build_actions = item.buildActions;
+        delete item.buildActions;
+      }
+    };
+
+    if (config.collections) {
+      for (const collection of config.collections) {
+        normalizeItem(collection as Record<string, unknown>);
+      }
+    }
+    if (config.singles) {
+      for (const single of config.singles) {
+        normalizeItem(single as Record<string, unknown>);
+      }
+    }
   }
 }

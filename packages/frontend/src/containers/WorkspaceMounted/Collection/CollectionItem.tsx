@@ -5,6 +5,8 @@ import { useCollectionItem, useWorkspaceDetails, useUpdateCollectionItem } from 
 import { siteQueryOptions } from './../../../queries/options';
 import { SukohForm } from './../../../components/SukohForm';
 import Spinner from './../../../components/Spinner';
+import { useSnackbar } from './../../../contexts/SnackbarContext';
+import * as api from './../../../api';
 import type { Field, BuildAction } from '@quiqr/types';
 
 interface CollectionItemProps {
@@ -53,6 +55,28 @@ function CollectionItem({ siteKey, workspaceKey, collectionKey, collectionItemKe
       );
     },
     [siteKey, workspaceKey, collectionKey, collectionItemKey, updateCollectionItemMutation]
+  );
+
+  const { addSnackMessage } = useSnackbar();
+
+  const handleDocBuild = useCallback(
+    async (buildAction: BuildAction) => {
+      const result = await api.buildCollectionItem(siteKey, workspaceKey, collectionKey, collectionItemKey, buildAction.key) as {
+        actionName: string;
+        stdoutType?: string;
+        stdoutContent: string;
+      };
+
+      addSnackMessage(`Build action "${result.actionName}" completed`, { severity: 'success' });
+
+      // If the build returns a file path, trigger a download
+      if (result.stdoutType === 'file_path' && result.stdoutContent) {
+        api.fileDownload(siteKey, workspaceKey, result.stdoutContent.trim());
+      }
+
+      return result;
+    },
+    [siteKey, workspaceKey, collectionKey, collectionItemKey, addSnackMessage]
   );
 
   const collection = selectedWorkspaceDetails?.collections.find((x) => x.key === collectionKey);
@@ -142,6 +166,7 @@ function CollectionItem({ siteKey, workspaceKey, collectionKey, collectionItemKe
       prompt_templates={prompt_templates}
       plugins={plugins}
       onSave={handleSave}
+      onDocBuild={handleDocBuild}
       onOpenInEditor={handleOpenInEditor}
       nestPath={nestPath}
     />

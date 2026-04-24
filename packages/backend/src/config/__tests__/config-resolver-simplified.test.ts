@@ -271,6 +271,7 @@ describe('ConfigResolver - Simplified 2-Layer', () => {
           serveDraftMode: false,
           disableAutoHugoServe: false,
         },
+        variables: {},
       };
       await store.writeInstanceSettings(completeInstanceSettings);
 

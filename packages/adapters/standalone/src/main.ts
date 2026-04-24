@@ -15,7 +15,7 @@ import { randomBytes } from 'crypto';
 import { homedir } from 'os';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, copyFileSync } from 'fs';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -65,14 +65,32 @@ async function startStandaloneBackend() {
 
   try {
     // Get paths
-    // For standalone mode, use a dedicated directory in user's home
-    const userDataPath = join(homedir(), '.quiqr-standalone');
+    // For standalone mode, use QUIQR_DATA_DIR env var or default to ~/.quiqr-standalone
+    const userDataPath = process.env.QUIQR_DATA_DIR
+      || join(homedir(), '.quiqr-standalone');
 
     // Find the project root (where resources folder is located)
     const rootPath = findProjectRoot();
 
     console.log(`User Data: ${userDataPath}`);
     console.log(`Root Path: ${rootPath}`);
+
+    // Ensure data directory exists
+    mkdirSync(userDataPath, { recursive: true });
+
+    // If QUIQR_CONFIG_FILE is set, copy external config into the data directory
+    // so the unified config service reads from its expected location.
+    const externalConfigFile = process.env.QUIQR_CONFIG_FILE;
+    if (externalConfigFile) {
+      const targetPath = join(userDataPath, 'instance_settings.json');
+      try {
+        copyFileSync(externalConfigFile, targetPath);
+        console.log(`Config copied from ${externalConfigFile}`);
+      } catch (e) {
+        console.error(`Failed to copy config from ${externalConfigFile}:`, e);
+        process.exit(1);
+      }
+    }
 
     // Create container first with dev adapters (temporary)
     const container = createContainer({
@@ -93,21 +111,35 @@ async function startStandaloneBackend() {
       { enabled?: boolean; provider?: string; local?: { usersFile?: string }; session?: { secret?: string; accessTokenExpiry?: string; refreshTokenExpiry?: string } } | undefined;
 
     if (authConfig?.enabled) {
-      // Auto-generate session secret if not set
-      let secret = authConfig.session?.secret;
+      // Read session secret from runtime state (not instance_settings.json).
+      // This separation allows instance_settings.json to be externally managed
+      // (e.g., by NixOS) without the server overwriting it.
+      const runtimeStatePath = join(userDataPath, 'runtime_state.json');
+      let runtimeState: Record<string, unknown> = {};
+      try {
+        if (existsSync(runtimeStatePath)) {
+          runtimeState = JSON.parse(readFileSync(runtimeStatePath, 'utf-8'));
+        }
+      } catch {
+        runtimeState = {};
+      }
+
+      // Use secret from: runtime state > config > generate new
+      let secret = (runtimeState.sessionSecret as string)
+        || authConfig.session?.secret;
+
       if (!secret) {
         secret = randomBytes(32).toString('hex');
-        // Persist the generated secret to instance settings
-        const settingsPath = join(userDataPath, 'instance_settings.json');
+      }
+
+      // Always persist to runtime state (ensures it survives config regeneration)
+      if (runtimeState.sessionSecret !== secret) {
         try {
-          const current = existsSync(settingsPath) ? JSON.parse(readFileSync(settingsPath, 'utf-8')) : {};
-          if (!current.auth) current.auth = {};
-          if (!current.auth.session) current.auth.session = {};
-          current.auth.session.secret = secret;
-          writeFileSync(settingsPath, JSON.stringify(current, null, 2), 'utf-8');
-          console.log('Generated and persisted auth session secret.');
+          runtimeState.sessionSecret = secret;
+          writeFileSync(runtimeStatePath, JSON.stringify(runtimeState, null, 2), 'utf-8');
+          console.log('Session secret persisted to runtime_state.json.');
         } catch (e) {
-          console.warn('Could not persist session secret to instance settings:', e);
+          console.warn('Could not persist session secret to runtime_state.json:', e);
         }
       }
 
@@ -148,8 +180,9 @@ async function startStandaloneBackend() {
 
     console.log('Web adapters initialized (menu, window, appInfo)');
 
-    // Get port from environment or use default
+    // Get port and host from environment or use defaults
     const port = process.env.PORT ? parseInt(process.env.PORT) : 5150;
+    const host = process.env.HOST || process.env.BIND_ADDRESS || undefined;
 
     // Initialize structured logger
     const prefs = container.config.prefs;
@@ -180,7 +213,7 @@ async function startStandaloneBackend() {
     }
 
     // Start the Express server
-    startServer(container, { port, frontendPath, auth });
+    startServer(container, { port, host, frontendPath, auth });
 
     container.logger.info(GLOBAL_CATEGORIES.STANDALONE_INIT, 'Quiqr Backend ready', {
       api: `http://localhost:${port}`,
