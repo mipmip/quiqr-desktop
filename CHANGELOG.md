@@ -2,6 +2,19 @@
 
 ## Next Release
 
+- feature: restore build action buttons on single and collection forms with per-button loading state
+- feature: auto-save before build action execution
+- feature: build action console output panel with stdout/stderr display and truncation
+- feature: file download endpoint for `stdout_type: file_path` build results (path-restricted to site directory)
+- feature: global build action variables in instance settings, overriding YAML defaults
+- feature: Variables section in Preferences UI for managing global build action variables
+- feature: `QUIQR_DATA_DIR` env var to override standalone data directory
+- feature: `HOST` / `BIND_ADDRESS` env var to control server bind address (for reverse proxy setups)
+- feature: `QUIQR_CONFIG_FILE` env var to use an external config file (NixOS/Docker integration)
+- feature: separate `runtime_state.json` for server-managed state (session secret), keeping `instance_settings.json` read-only
+- fix: accept both `buildActions` (camelCase) and `build_actions` (snake_case) in site model YAML
+- fix: global variables not persisted via Preferences UI (`updateInstanceSettings` missing `variables` merge)
+
 ## 0.23.0 (2026-04-07)
 
 - feature: unified frontend serving — standalone server serves both API and frontend from a single Express server
