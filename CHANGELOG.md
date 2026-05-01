@@ -14,9 +14,6 @@
 - feature: separate `runtime_state.json` for server-managed state (session secret), keeping `instance_settings.json` read-only
 - fix: accept both `buildActions` (camelCase) and `build_actions` (snake_case) in site model YAML
 - fix: global variables not persisted via Preferences UI (`updateInstanceSettings` missing `variables` merge)
-
-## 0.23.0 (2026-04-07)
-
 - feature: unified frontend serving — standalone server serves both API and frontend from a single Express server
 - feature: JWT-based authentication for standalone mode with local file user provider
 - feature: login page, forced password change on first login, User menu with logout and change password
