@@ -5,6 +5,8 @@ import { useSingle, useWorkspaceDetails, useUpdateSingle } from './../../queries
 import { siteQueryOptions } from './../../queries/options';
 import { SukohForm } from './../../components/SukohForm';
 import Spinner from './../../components/Spinner';
+import { useSnackbar } from './../../contexts/SnackbarContext';
+import * as api from './../../api';
 import type { Field, BuildAction } from '@quiqr/types';
 
 interface SingleProps {
@@ -70,6 +72,28 @@ function Single({ siteKey, workspaceKey, singleKey, fileOverride, refreshed, mod
       );
     },
     [siteKey, workspaceKey, singleKey, updateSingleMutation]
+  );
+
+  const { addSnackMessage } = useSnackbar();
+
+  const handleDocBuild = useCallback(
+    async (buildAction: BuildAction) => {
+      const result = await api.buildSingle(siteKey, workspaceKey, singleKey, buildAction.key) as {
+        actionName: string;
+        stdoutType?: string;
+        stdoutContent: string;
+      };
+
+      addSnackMessage(`Build action "${result.actionName}" completed`, { severity: 'success' });
+
+      // If the build returns a file path, trigger a download
+      if (result.stdoutType === 'file_path' && result.stdoutContent) {
+        api.fileDownload(siteKey, workspaceKey, result.stdoutContent.trim());
+      }
+
+      return result;
+    },
+    [siteKey, workspaceKey, singleKey, addSnackMessage]
   );
 
   const single = selectedWorkspaceDetails?.singles.find((x) => x.key === singleKey);
@@ -152,6 +176,7 @@ function Single({ siteKey, workspaceKey, singleKey, fileOverride, refreshed, mod
       siteKey={siteKey}
       workspaceKey={workspaceKey}
       onSave={handleSave}
+      onDocBuild={handleDocBuild}
       onOpenInEditor={handleOpenInEditor}
       hideExternalEditIcon={single.hideExternalEditIcon}
       hideSaveButton={single.hideSaveButton}

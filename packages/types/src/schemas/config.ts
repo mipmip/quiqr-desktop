@@ -77,7 +77,13 @@ export const singleConfigSchema = z.object({
   pullOuterRootKey: z.string().optional(),
   fields: z.array(fieldSchema).optional(),
   prompt_templates: z.array(z.string()).optional(),
-  build_actions: z.array(buildActionSchema).optional()
+  build_actions: z.array(buildActionSchema).optional(),
+  // Accept camelCase variant from existing site models
+  buildActions: z.array(buildActionSchema).optional(),
+}).transform((data) => {
+  // Normalize camelCase buildActions to snake_case build_actions
+  const { buildActions, ...rest } = data;
+  return { ...rest, build_actions: rest.build_actions ?? buildActions };
 })
 
 export const collectionConfigSchema = z.object({
@@ -94,7 +100,13 @@ export const collectionConfigSchema = z.object({
   hidePreviewIcon: z.boolean().optional(),
   fields: z.array(fieldSchema),
   prompt_templates: z.array(z.string()).optional(),
-  build_actions: z.array(buildActionSchema).optional()
+  build_actions: z.array(buildActionSchema).optional(),
+  // Accept camelCase variant from existing site models
+  buildActions: z.array(buildActionSchema).optional(),
+}).transform((data) => {
+  // Normalize camelCase buildActions to snake_case build_actions
+  const { buildActions, ...rest } = data;
+  return { ...rest, build_actions: rest.build_actions ?? buildActions };
 })
 
 export const menuItemSchema = z.object({
@@ -478,6 +490,9 @@ export const instanceSettingsSchema = z.object({
     serveDraftMode: z.boolean().default(false),
     disableAutoHugoServe: z.boolean().default(false),
   }).default({ serveDraftMode: false, disableAutoHugoServe: false }),
+
+  // Global build action variables (machine-specific overrides for %VAR% substitution)
+  variables: z.record(z.string(), z.string()).default({}),
 
   // Authentication configuration (standalone mode only)
   auth: authConfigSchema.optional(),

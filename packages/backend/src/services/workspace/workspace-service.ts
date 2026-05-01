@@ -23,6 +23,7 @@ import type { PathHelper } from '../../utils/path-helper.js';
 import { recurForceRemove } from '../../utils/file-dir-utils.js';
 import { createThumbnailJob } from '../../jobs/index.js';
 import { BuildActionService, type BuildActionResult } from '../../build-actions/index.js';
+import type { BuildActionExecute } from '@quiqr/types';
 import { SITE_CATEGORIES } from '../../logging/index.js';
 import type { CollectionConfig, ExtraBuildConfig, BuildConfig, ServeConfig } from '@quiqr/types';
 import { frontMatterContentSchema } from '@quiqr/types';
@@ -893,9 +894,13 @@ export class WorkspaceService {
       throw new Error(`Build action ${buildAction} not found in collection ${collectionKey}`);
     }
 
+    // Merge global variables (from instance settings) with per-action YAML variables.
+    // Global overrides YAML defaults.
+    const executeWithMergedVars = this.mergeGlobalVariables(buildActionDict.execute);
+
     return this.buildActionService.runAction(
       buildAction,
-      buildActionDict.execute,
+      executeWithMergedVars,
       filePath,
       this.workspacePath,
       this.siteKey,
@@ -919,14 +924,48 @@ export class WorkspaceService {
       throw new Error(`Build action ${buildAction} not found in single ${singleKey}`);
     }
 
+    // Merge global variables (from instance settings) with per-action YAML variables.
+    // Global overrides YAML defaults.
+    const executeWithMergedVars = this.mergeGlobalVariables(buildActionDict.execute);
+
     return this.buildActionService.runAction(
       buildAction,
-      buildActionDict.execute,
+      executeWithMergedVars,
       filePath,
       this.workspacePath,
       this.siteKey,
       this.workspaceKey
     );
+  }
+
+  /**
+   * Merge global variables from instance settings with per-action YAML variables.
+   * Global variables override YAML defaults when both define the same name.
+   */
+  private mergeGlobalVariables(execute: BuildActionExecute): BuildActionExecute {
+    const globalVars = this.container.unifiedConfig.getInstanceSetting('variables') as Record<string, string> | undefined;
+    if (!globalVars || Object.keys(globalVars).length === 0) {
+      return execute;
+    }
+
+    // Start with YAML defaults, then overlay global overrides
+    const yamlVars = execute.variables || [];
+    const mergedMap = new Map<string, string>();
+
+    // Add YAML defaults first
+    for (const v of yamlVars) {
+      mergedMap.set(v.name, v.value);
+    }
+
+    // Global overrides win
+    for (const [name, value] of Object.entries(globalVars)) {
+      mergedMap.set(name, value);
+    }
+
+    // Convert back to the array format expected by BuildActionService
+    const mergedVars = Array.from(mergedMap.entries()).map(([name, value]) => ({ name, value }));
+
+    return { ...execute, variables: mergedVars };
   }
 
   /**

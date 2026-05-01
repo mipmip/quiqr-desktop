@@ -14,6 +14,7 @@ import { errorHandler, asyncHandler } from './middleware/error-handler.js';
 import { createAuthMiddleware } from './middleware/auth-middleware.js';
 import { createAuthRoutes } from './routes/auth-routes.js';
 import { TokenService } from '../auth/token-service.js';
+import { createFileDownloadHandler } from './handlers/file-download-handler.js';
 
 /**
  * Server configuration options
@@ -33,6 +34,12 @@ export interface ServerOptions {
    * Port to listen on (default: 5150)
    */
   port?: number;
+
+  /**
+   * Host/address to bind to (default: '0.0.0.0' — all interfaces).
+   * Set to '127.0.0.1' when running behind a reverse proxy.
+   */
+  host?: string;
 
   /**
    * Enable CORS. Defaults to true when frontendPath is not set,
@@ -339,6 +346,12 @@ export function createServer(
     }
   );
 
+  // File download route — serves files from within the workspace site directory
+  app.get(
+    '/api/sites/:siteKey/workspaces/:workspaceKey/file-download',
+    createFileDownloadHandler(container)
+  );
+
   // SPA catch-all: serve index.html for any non-API route (public)
   if (frontendPath) {
     app.get('/{*path}', (req, res) => {
@@ -363,15 +376,23 @@ export function startServer(
   container: AppContainer,
   options: ServerOptions = {}
 ): void {
-  const { port = 5150 } = options;
+  const { port = 5150, host } = options;
 
   const app = createServer(container, options);
 
-  app.listen(port, () => {
+  const onListening = () => {
+    const bindAddress = host || '0.0.0.0';
     container.logger.info('backend-server', 'API Server started', {
       port,
-      url: `http://localhost:${port}`
+      host: bindAddress,
+      url: `http://${bindAddress === '0.0.0.0' ? 'localhost' : bindAddress}:${port}`
     });
-    console.log(`Server running on http://localhost:${port}`);
-  });
+    console.log(`Server running on http://${bindAddress}:${port}`);
+  };
+
+  if (host) {
+    app.listen(port, host, onListening);
+  } else {
+    app.listen(port, onListening);
+  }
 }

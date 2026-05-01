@@ -39,6 +39,7 @@ const APP_DEFAULT_INSTANCE: InstanceSettings = {
     serveDraftMode: false,
     disableAutoHugoServe: false,
   },
+  variables: {},
 };
 
 const APP_DEFAULT_USER_PREFS = {

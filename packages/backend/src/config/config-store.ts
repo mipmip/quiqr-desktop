@@ -25,6 +25,7 @@ const DEFAULT_INSTANCE_SETTINGS: InstanceSettings = {
   experimentalFeatures: false,
   dev: { localApi: false, showCurrentUser: false, disablePartialCache: false },
   hugo: { serveDraftMode: false, disableAutoHugoServe: false },
+  variables: {},
 };
 
 /**

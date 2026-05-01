@@ -28,6 +28,7 @@ export type DeepPartialInstanceSettings = {
   experimentalFeatures?: boolean;
   dev?: Partial<InstanceSettings['dev']>;
   hugo?: Partial<InstanceSettings['hugo']>;
+  variables?: Record<string, string>;
 };
 
 /**
@@ -336,6 +337,7 @@ export class UnifiedConfigService {
         ...current.hugo,
         ...(updates.hugo || {}),
       },
+      ...(updates.variables !== undefined ? { variables: updates.variables } : {}),
     };
 
     await this.store.writeInstanceSettings(updated);

@@ -6,6 +6,7 @@ import PrefsApplicationStorage from './PrefsApplicationStorage';
 import PrefsGit from './PrefsGit';
 import PrefsLogging from './PrefsLogging';
 import PrefsHugo from './PrefsHugo';
+import PrefsVariables from './PrefsVariables';
 
 export const PrefsRouted = () => {
   return (
@@ -17,6 +18,7 @@ export const PrefsRouted = () => {
       <Route path="git" element={<PrefsGit />} />
       <Route path="logging" element={<PrefsLogging />} />
       <Route path="hugo" element={<PrefsHugo />} />
+      <Route path="variables" element={<PrefsVariables />} />
       <Route path="*" element={<PrefsGeneral />} />
     </Routes>
   );
