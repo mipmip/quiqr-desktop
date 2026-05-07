@@ -18,9 +18,9 @@ export class AppConfig {
   private configPath: string;
   private configFile: string;
 
-  constructor(userDataPath: string, configFileName: string = 'quiqr-app-config.json') {
-    this.configPath = userDataPath;
-    this.configFile = path.join(userDataPath, configFileName);
+  constructor(configDirPath: string, configFileName: string = 'quiqr-app-config.json') {
+    this.configPath = configDirPath;
+    this.configFile = path.join(configDirPath, configFileName);
     this.config = this.loadConfig();
   }
 

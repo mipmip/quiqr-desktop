@@ -14,7 +14,7 @@ import { homedir } from 'os';
 import { join } from 'path';
 import { createInterface } from 'readline';
 
-const configDir = join(homedir(), '.quiqr-standalone');
+const configDir = process.env.QUIQR_CONF_DIR || join(homedir(), '.quiqr-standalone');
 
 function promptPassword(prompt: string): Promise<string> {
   const rl = createInterface({

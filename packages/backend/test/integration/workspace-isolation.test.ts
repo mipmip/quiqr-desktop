@@ -36,7 +36,7 @@ describe('Workspace Isolation', () => {
 
     // Create container with test configuration
     container = createContainer({
-      userDataPath: testDir,
+      configDirPath: testDir,
       rootPath: testDir,
       adapters: mockAdapters,
     });

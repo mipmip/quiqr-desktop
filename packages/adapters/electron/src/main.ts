@@ -51,15 +51,15 @@ async function startBackend() {
     console.log('Electron adapters created');
 
     // Get paths
-    const userDataPath = app.getPath('userData');
+    const configDirPath = app.getPath('userData');
     const rootPath = app.getAppPath();
 
-    console.log(`User Data: ${userDataPath}`);
+    console.log(`User Data: ${configDirPath}`);
     console.log(`App Path: ${rootPath}`);
 
     // Create container with all dependencies
     const container = createContainer({
-      userDataPath,
+      configDirPath,
       rootPath,
       adapters,
       configFileName: 'quiqr-app-config.json'
@@ -75,7 +75,7 @@ async function startBackend() {
     // Log application start
     container.logger.info(GLOBAL_CATEGORIES.ELECTRON_INIT, 'Quiqr Desktop started in Electron mode', {
       version: app.getVersion(),
-      userDataPath,
+      configDirPath,
       logRetentionDays
     });
 
