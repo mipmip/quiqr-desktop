@@ -54,7 +54,7 @@ async function startBackend() {
     const configDirPath = app.getPath('userData');
     const rootPath = app.getAppPath();
 
-    console.log(`User Data: ${configDirPath}`);
+    console.log(`Config Dir: ${configDirPath}`);
     console.log(`App Path: ${rootPath}`);
 
     // Create container with all dependencies

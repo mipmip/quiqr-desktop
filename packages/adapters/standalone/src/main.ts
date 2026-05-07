@@ -70,7 +70,7 @@ async function startStandaloneBackend() {
     // Find the project root (where resources folder is located)
     const rootPath = findProjectRoot();
 
-    console.log(`User Data: ${configDirPath}`);
+    console.log(`Config Dir: ${configDirPath}`);
     console.log(`Root Path: ${rootPath}`);
 
     // Ensure data directory exists
