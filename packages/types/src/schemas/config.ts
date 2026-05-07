@@ -367,7 +367,6 @@ export const userPreferencesSchema = z.object({
   customOpenInCommand: z.string().optional(),
   showSplashAtStartup: z.boolean().optional(),
   applicationRole: z.string().optional(),
-  logRetentionDays: z.number().min(0).max(365).optional().default(30)
 }).passthrough() // TODO fix nested types
 
 // Schema for the full application config object (global.pogoconf in backend)
@@ -382,10 +381,8 @@ export const appConfigSchema = z.object({
   skipWelcomeScreen: z.boolean(),
   experimentalFeatures: z.boolean(),
   disablePartialCache: z.boolean(),
-  devLocalApi: z.boolean(),
   devDisableAutoHugoServe: z.boolean(),
   hugoServeDraftMode: z.boolean(),
-  devShowCurrentUser: z.boolean(),
   sitesListingView: z.string(),
   currentUsername: z.string().nullable()
 })
@@ -471,19 +468,16 @@ export const instanceSettingsSchema = z.object({
   // Logging configuration
   logging: z.object({
     retention: z.number().min(0).max(365).default(30),
-    logRetentionDays: z.number().min(0).max(365).default(30),
     logLevel: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
-  }).default({ retention: 30, logRetentionDays: 30, logLevel: 'info' }),
+  }).default({ retention: 30, logLevel: 'info' }),
 
   // Feature flags and experimental features
   experimentalFeatures: z.boolean().default(false),
 
   // Development settings
   dev: z.object({
-    localApi: z.boolean().default(false),
-    showCurrentUser: z.boolean().default(false),
     disablePartialCache: z.boolean().default(false),
-  }).default({ localApi: false, showCurrentUser: false, disablePartialCache: false }),
+  }).default({ disablePartialCache: false }),
 
   // Hugo-specific settings
   hugo: z.object({
@@ -602,11 +596,8 @@ export const standardEnvMappings: z.infer<typeof envVarMappingSchema>[] = [
   { envVar: 'STORAGE_DATAFOLDER', configPath: 'storage.dataFolder', transform: 'string' },
   { envVar: 'GIT_BINARY_PATH', configPath: 'git.binaryPath', transform: 'string' },
   { envVar: 'LOGGING_RETENTION', configPath: 'logging.retention', transform: 'number' },
-  { envVar: 'LOGGING_RETENTION_DAYS', configPath: 'logging.logRetentionDays', transform: 'number' },
   { envVar: 'LOGGING_LEVEL', configPath: 'logging.logLevel', transform: 'string' },
   { envVar: 'EXPERIMENTAL_FEATURES', configPath: 'experimentalFeatures', transform: 'boolean' },
-  { envVar: 'DEV_LOCAL_API', configPath: 'dev.localApi', transform: 'boolean' },
-  { envVar: 'DEV_SHOW_CURRENT_USER', configPath: 'dev.showCurrentUser', transform: 'boolean' },
   { envVar: 'DEV_DISABLE_PARTIAL_CACHE', configPath: 'dev.disablePartialCache', transform: 'boolean' },
   { envVar: 'HUGO_SERVE_DRAFT_MODE', configPath: 'hugo.serveDraftMode', transform: 'boolean' },
   { envVar: 'HUGO_DISABLE_AUTO_SERVE', configPath: 'hugo.disableAutoHugoServe', transform: 'boolean' },
@@ -622,8 +613,6 @@ export const legacyToUnifiedMapping = {
   // Reference mapping (not used in code)
   // Old quiqr-app-config.json → new structure
   'experimentalFeatures': 'instance_settings.json: experimentalFeatures',
-  'devLocalApi': 'instance_settings.json: dev.localApi',
-  'devShowCurrentUser': 'instance_settings.json: dev.showCurrentUser',
   'disablePartialCache': 'instance_settings.json: dev.disablePartialCache',
   'devDisableAutoHugoServe': 'instance_settings.json: hugo.disableAutoHugoServe',
   'hugoServeDraftMode': 'instance_settings.json: hugo.serveDraftMode',

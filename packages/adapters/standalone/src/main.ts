@@ -64,8 +64,6 @@ async function startStandaloneBackend() {
   console.log('='.repeat(60));
 
   try {
-    // Get paths
-    // For standalone mode, use QUIQR_CONF_DIR env var or default to ~/.quiqr-standalone
     const configDirPath = process.env.QUIQR_CONF_DIR
       || join(homedir(), '.quiqr-standalone');
 
@@ -185,16 +183,15 @@ async function startStandaloneBackend() {
     const host = process.env.HOST || process.env.BIND_ADDRESS || undefined;
 
     // Initialize structured logger
-    const prefs = container.config.prefs;
-    const logRetentionDays = prefs.logRetentionDays ?? 30;
-    container.logger.initCleanup(logRetentionDays);
+    const logRetention = (container.unifiedConfig.getInstanceSetting('logging.retention') as number) ?? 30;
+    container.logger.initCleanup(logRetention);
 
     // Log application start
     container.logger.info(GLOBAL_CATEGORIES.STANDALONE_INIT, 'Quiqr Backend started in standalone mode', {
       configDirPath,
       rootPath,
       port,
-      logRetentionDays
+      logRetention
     });
 
     // Resolve frontend build path (skip in dev mode — use Vite dev server instead)

@@ -25,10 +25,8 @@ export function createReadConfKeyHandler(container: AppContainer) {
       skipWelcomeScreen: container.unifiedConfig.getUserState('skipWelcomeScreen'),
       experimentalFeatures: container.unifiedConfig.getInstanceSetting('experimentalFeatures'),
       disablePartialCache: container.unifiedConfig.getInstanceSetting('dev.disablePartialCache'),
-      devLocalApi: container.unifiedConfig.getInstanceSetting('dev.localApi'),
       devDisableAutoHugoServe: container.unifiedConfig.getInstanceSetting('hugo.disableAutoHugoServe'),
       hugoServeDraftMode: container.unifiedConfig.getInstanceSetting('hugo.serveDraftMode'),
-      devShowCurrentUser: container.unifiedConfig.getInstanceSetting('dev.showCurrentUser'),
       currentUsername: null, // Not stored in unified config
     };
 

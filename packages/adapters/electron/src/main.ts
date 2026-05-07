@@ -68,15 +68,14 @@ async function startBackend() {
     console.log('Container created with dependency injection');
 
     // Initialize structured logger
-    const prefs = container.config.prefs;
-    const logRetentionDays = prefs.logRetentionDays ?? 30;
-    container.logger.initCleanup(logRetentionDays);
-    
+    const logRetention = (container.unifiedConfig.getInstanceSetting('logging.retention') as number) ?? 30;
+    container.logger.initCleanup(logRetention);
+
     // Log application start
     container.logger.info(GLOBAL_CATEGORIES.ELECTRON_INIT, 'Quiqr Desktop started in Electron mode', {
       version: app.getVersion(),
       configDirPath,
-      logRetentionDays
+      logRetention
     });
 
     // Create the Express app from backend
