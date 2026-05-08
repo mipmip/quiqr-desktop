@@ -264,6 +264,10 @@ describe('ConfigResolver - Simplified 2-Layer', () => {
           serveDraftMode: false,
           disableAutoHugoServe: false,
         },
+        preview: {
+          enabled: true,
+          baseUrl: 'http://localhost:13131',
+        },
         variables: {},
       };
       await store.writeInstanceSettings(completeInstanceSettings);

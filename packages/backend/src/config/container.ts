@@ -275,6 +275,7 @@ export function createContainer(options: ContainerOptions): AppContainer {
       process.platform === 'win32' ? 'windows' as const :
       'linux' as const,
     isPackaged: adapters.appInfo.isPackaged(),
+    runtime: adapters.appInfo.getRuntime(),
   };
 
   // Create provider factory for SSG providers

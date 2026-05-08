@@ -25,6 +25,7 @@ const DEFAULT_INSTANCE_SETTINGS: InstanceSettings = {
   experimentalFeatures: false,
   dev: { disablePartialCache: false },
   hugo: { serveDraftMode: false, disableAutoHugoServe: false },
+  preview: { enabled: true, baseUrl: 'http://localhost:13131' },
   variables: {},
 };
 

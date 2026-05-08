@@ -36,6 +36,10 @@ const APP_DEFAULT_INSTANCE: InstanceSettings = {
     serveDraftMode: false,
     disableAutoHugoServe: false,
   },
+  preview: {
+    enabled: true,
+    baseUrl: 'http://localhost:13131',
+  },
   variables: {},
 };
 

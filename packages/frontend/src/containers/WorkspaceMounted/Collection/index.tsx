@@ -551,6 +551,7 @@ const Collection = ({ siteKey, workspaceKey, collectionKey }: CollectionProps) =
     CollectionPath.shift();
 
     const path = CollectionPath.join("/");
+    // TODO: use previewBaseUrl from WorkspaceOutletContext when this function is wired up
     const url = 'http://localhost:13131/'+path.toLowerCase();
 
     return url;

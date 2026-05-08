@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useLocation, Outlet } from 'react-router';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import service from '../../services/service';
+import { getInstanceSetting } from '../../api';
 import { useSiteAndWorkspaceData } from '../../queries/hooks';
 import { AppLayout } from '../../layouts/AppLayout';
 import type { SiteConfig, WorkspaceDetails } from '@quiqr/types';
@@ -26,6 +27,7 @@ export interface WorkspaceOutletContext {
   workspace: WorkspaceDetails | undefined;
   modelRefreshKey: number;
   ssgReady: boolean;
+  previewBaseUrl: string;
 }
 
 const Workspace = ({ siteKey, workspaceKey, applicationRole }: WorkspaceProps) => {
@@ -40,6 +42,17 @@ const Workspace = ({ siteKey, workspaceKey, applicationRole }: WorkspaceProps) =
   const error = isError ? String(queryError) : null;
 
   const [modelRefreshKey, setModelRefreshKey] = useState(0);
+
+  // Read preview configuration from instance settings
+  const { data: previewEnabled } = useQuery({
+    queryKey: ['getInstanceSetting', 'preview.enabled'],
+    queryFn: () => getInstanceSetting('preview.enabled'),
+  });
+  const { data: previewBaseUrlSetting } = useQuery({
+    queryKey: ['getInstanceSetting', 'preview.baseUrl'],
+    queryFn: () => getInstanceSetting('preview.baseUrl'),
+  });
+  const previewBaseUrl = (typeof previewBaseUrlSetting === 'string' ? previewBaseUrlSetting : 'http://localhost:13131');
 
   const {
     progress: hugoProgress,
@@ -117,9 +130,9 @@ const Workspace = ({ siteKey, workspaceKey, applicationRole }: WorkspaceProps) =
 
     const path = await service.api.getCurrentBaseUrl();
     if (typeof path === 'string') {
-      await openExternal('http://localhost:13131' + path);
+      await openExternal(previewBaseUrl + path);
     }
-  }, [ssgReady, workspace?.ssgType, workspace?.ssgVersion, downloadSSG]);
+  }, [ssgReady, workspace?.ssgType, workspace?.ssgVersion, downloadSSG, previewBaseUrl]);
 
   // Determine active section based on path
   const path = location.pathname;
@@ -127,8 +140,8 @@ const Workspace = ({ siteKey, workspaceKey, applicationRole }: WorkspaceProps) =
   const isSync = path.includes('/sync');
   const activeSection = isSiteConf ? 'tools' : isSync ? 'sync' : 'content';
 
-  // Show preview button unless explicitly hidden or in siteconf
-  const showPreviewButton = !isSiteConf && !workspace?.serve?.[0]?.hugoHidePreviewSite;
+  // Show preview button unless explicitly hidden, in siteconf, or preview disabled in instance settings
+  const showPreviewButton = previewEnabled !== false && !isSiteConf && !workspace?.serve?.[0]?.hugoHidePreviewSite;
 
   // Disable preview button while downloading
   const previewButtonDisabled = isDownloading;
@@ -193,6 +206,7 @@ const Workspace = ({ siteKey, workspaceKey, applicationRole }: WorkspaceProps) =
               workspace,
               modelRefreshKey,
               ssgReady,
+              previewBaseUrl,
             }}
           />
         ) : null}

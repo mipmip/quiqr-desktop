@@ -118,6 +118,7 @@ function Single({ siteKey, workspaceKey, singleKey, fileOverride, refreshed, mod
       finalpath = '/' + finalpath;
     }
 
+    // TODO: use previewBaseUrl from WorkspaceOutletContext when this variable is wired up
     return 'http://localhost:13131' + finalpath;
   }, [single, currentBaseUrlPath]);
 

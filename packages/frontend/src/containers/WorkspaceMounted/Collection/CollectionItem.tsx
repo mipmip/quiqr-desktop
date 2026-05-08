@@ -108,6 +108,7 @@ function CollectionItem({ siteKey, workspaceKey, collectionKey, collectionItemKe
     if (Array.from(finalpath)[0] !== '/') {
       finalpath = '/' + finalpath;
     }
+    // TODO: use previewBaseUrl from WorkspaceOutletContext when this variable is wired up
     return 'http://localhost:13131' + finalpath;
   }, [collection, collectionItemKey, currentBaseUrlPath]);
 

@@ -485,6 +485,12 @@ export const instanceSettingsSchema = z.object({
     disableAutoHugoServe: z.boolean().default(false),
   }).default({ serveDraftMode: false, disableAutoHugoServe: false }),
 
+  // Preview configuration
+  preview: z.object({
+    enabled: z.boolean().default(true),
+    baseUrl: z.string().default('http://localhost:13131'),
+  }).default({ enabled: true, baseUrl: 'http://localhost:13131' }),
+
   // Global build action variables (machine-specific overrides for %VAR% substitution)
   variables: z.record(z.string(), z.string()).default({}),
 

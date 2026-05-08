@@ -28,6 +28,7 @@ describe('Workspace Isolation', () => {
     const mockAdapters = createMockAdapters({
       appInfo: {
         isPackaged: () => false,
+        getRuntime: () => 'electron' as const,
         getAppPath: () => testDir,
         getVersion: () => '1.0.0-test',
         getPath: () => testDir, // Use testDir for all paths

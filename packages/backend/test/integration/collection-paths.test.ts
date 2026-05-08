@@ -27,6 +27,7 @@ describe('Collection Path Normalization', () => {
     const mockAdapters = createMockAdapters({
       appInfo: {
         isPackaged: () => false,
+        getRuntime: () => 'electron' as const,
         getAppPath: () => testDir,
         getVersion: () => '1.0.0-test',
         getPath: () => testDir,
