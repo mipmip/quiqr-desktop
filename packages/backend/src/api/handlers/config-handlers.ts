@@ -258,6 +258,7 @@ export function createGetEnvironmentInfoHandler(container: AppContainer) {
     return {
       platform: container.environmentInfo.platform,
       isPackaged: container.environmentInfo.isPackaged,
+      runtime: container.environmentInfo.runtime,
     };
   };
 }

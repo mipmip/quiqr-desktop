@@ -25,6 +25,8 @@
 - fix: accept both `buildActions` (camelCase) and `build_actions` (snake_case) in site model YAML
 - fix: global variables not persisted via Preferences UI (`updateInstanceSettings` missing `variables` merge)
 - fix: `isStandalone` detection uses `runtime` field instead of `isPackaged` (fixes Electron dev mode)
+- fix: `getEnvironmentInfo` endpoint made public (pre-auth) so frontend can detect runtime mode before login
+- fix: standalone adapter uses `WebAppInfoAdapter` at container creation so `runtime: 'standalone'` is set from the start
 - feature: unified frontend serving — standalone server serves both API and frontend from a single Express server
 - feature: JWT-based authentication for standalone mode with local file user provider
 - feature: login page, forced password change on first login, User menu with logout and change password

@@ -9,6 +9,7 @@ import { createDevAdapters, createContainer, LocalFileAuthProvider } from '@quiq
 import { startServer } from '@quiqr/backend/api';
 import type { ServerAuthOptions } from '@quiqr/backend/api';
 import { createWebAdapters } from './adapters/index.js';
+import { WebAppInfoAdapter } from './adapters/app-info-adapter.js';
 import { findFrontendBuildDir } from './frontend-path.js';
 import { GLOBAL_CATEGORIES } from '@quiqr/backend/logging';
 import { randomBytes } from 'crypto';
@@ -90,11 +91,13 @@ async function startStandaloneBackend() {
       }
     }
 
-    // Create container first with dev adapters (temporary)
+    // Create container with dev adapters but standalone appInfo (so runtime is correct from the start)
+    const devAdapters = createDevAdapters();
+    devAdapters.appInfo = new WebAppInfoAdapter(rootPath);
     const container = createContainer({
       configDirPath,
       rootPath,
-      adapters: createDevAdapters(), // Temporary placeholder
+      adapters: devAdapters,
       configFileName: 'quiqr-app-config.json'
     });
 
