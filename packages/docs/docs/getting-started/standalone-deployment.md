@@ -37,6 +37,23 @@ The application will be available at `http://localhost:5150`.
 | `FRONTEND_PATH` | Auto-detected | Override the frontend build directory path |
 | `NODE_ENV` | `production` | Set to `development` for dev mode |
 
+## Preview Server
+
+When you preview a site, Quiqr runs the Hugo development server bound to `0.0.0.0:13131`. The in-app preview link is resolved based on runtime mode:
+
+- **Electron (desktop):** `http://localhost:13131` — Hugo runs on the same machine as the browser.
+- **Standalone (server):** the link is derived from the host you used to reach Quiqr — `<protocol>//<your-host>:13131`. So if you open Quiqr at `http://cms.example.com:5150`, the preview opens at `http://cms.example.com:13131`. No configuration is needed.
+
+For this to work in standalone mode, **port `13131` must be reachable from the browser** (expose it the same way you expose the app port).
+
+### Overriding the preview URL
+
+To point previews somewhere else (for example a reverse proxy), set the `preview.baseUrl` instance setting to an explicit URL. When set, it is used verbatim in both modes and takes precedence over host derivation. When empty (the default), the runtime-mode behavior above applies.
+
+:::caution Mixed content
+If you serve Quiqr over `https://` while the preview server stays on plain `http://`, browsers may block the preview as mixed content. The derived URL follows the request protocol, but the Hugo preview server itself does not serve TLS. For HTTPS deployments, terminate TLS for the preview server (e.g. via a reverse proxy) and set `preview.baseUrl` accordingly.
+:::
+
 ## Docker
 
 The simplest way to deploy Quiqr standalone is with Docker.
@@ -61,6 +78,7 @@ services:
     build: .
     ports:
       - "5150:5150"
+      - "13131:13131" # Hugo preview server (required for in-app site preview)
     environment:
       - NODE_ENV=production
       - PORT=5150

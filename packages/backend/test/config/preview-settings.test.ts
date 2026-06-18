@@ -11,9 +11,9 @@ describe('Preview Instance Settings', () => {
     expect(result.preview.enabled).toBe(true);
   });
 
-  it('defaults preview.baseUrl to http://localhost:13131', () => {
+  it('defaults preview.baseUrl to an empty string (runtime-mode fallback applies in the frontend)', () => {
     const result = instanceSettingsSchema.parse({});
-    expect(result.preview.baseUrl).toBe('http://localhost:13131');
+    expect(result.preview.baseUrl).toBe('');
   });
 
   it('accepts custom preview config', () => {
@@ -32,6 +32,13 @@ describe('Preview Instance Settings', () => {
       preview: { enabled: false },
     });
     expect(result.preview.enabled).toBe(false);
-    expect(result.preview.baseUrl).toBe('http://localhost:13131');
+    expect(result.preview.baseUrl).toBe('');
+  });
+
+  it('returns an explicitly set baseUrl verbatim (admin override)', () => {
+    const result = instanceSettingsSchema.parse({
+      preview: { baseUrl: 'https://cms.example.com:13131' },
+    });
+    expect(result.preview.baseUrl).toBe('https://cms.example.com:13131');
   });
 });

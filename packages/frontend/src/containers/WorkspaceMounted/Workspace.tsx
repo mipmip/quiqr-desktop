@@ -10,6 +10,8 @@ import { useSSGDownload } from '../../hooks/useSSGDownload';
 import { useModelCacheEvents } from '../../hooks/useModelCacheEvents';
 import ProgressDialog from '../../components/ProgressDialog';
 import { openExternal } from '../../utils/platform';
+import { resolvePreviewBaseUrl } from '../../utils/previewUrl';
+import useEnvironment from '../../hooks/useEnvironment';
 import useWorkspaceToolbarItems from './hooks/useWorkspaceToolbarItems';
 import WorkspaceSidebarSelector from './components/WorkspaceSidebarSelector';
 
@@ -52,7 +54,13 @@ const Workspace = ({ siteKey, workspaceKey, applicationRole }: WorkspaceProps) =
     queryKey: ['getInstanceSetting', 'preview.baseUrl'],
     queryFn: () => getInstanceSetting('preview.baseUrl'),
   });
-  const previewBaseUrl = (typeof previewBaseUrlSetting === 'string' ? previewBaseUrlSetting : 'http://localhost:13131');
+  const { isStandalone } = useEnvironment();
+  const previewBaseUrl = resolvePreviewBaseUrl({
+    setting: typeof previewBaseUrlSetting === 'string' ? previewBaseUrlSetting : '',
+    isStandalone,
+    protocol: window.location.protocol,
+    hostname: window.location.hostname,
+  });
 
   const {
     progress: hugoProgress,

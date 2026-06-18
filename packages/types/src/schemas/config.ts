@@ -488,8 +488,11 @@ export const instanceSettingsSchema = z.object({
   // Preview configuration
   preview: z.object({
     enabled: z.boolean().default(true),
-    baseUrl: z.string().default('http://localhost:13131'),
-  }).default({ enabled: true, baseUrl: 'http://localhost:13131' }),
+    // Empty default so "unset" is distinguishable from an explicit admin override.
+    // The frontend applies a runtime-mode fallback (Electron localhost / standalone host derivation)
+    // when this is empty. See change: fix-server-mode-preview-url.
+    baseUrl: z.string().default(''),
+  }).default({ enabled: true, baseUrl: '' }),
 
   // Global build action variables (machine-specific overrides for %VAR% substitution)
   variables: z.record(z.string(), z.string()).default({}),

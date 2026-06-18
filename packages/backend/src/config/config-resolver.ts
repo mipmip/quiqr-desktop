@@ -38,7 +38,7 @@ const APP_DEFAULT_INSTANCE: InstanceSettings = {
   },
   preview: {
     enabled: true,
-    baseUrl: 'http://localhost:13131',
+    baseUrl: '',
   },
   variables: {},
 };
