@@ -113,5 +113,5 @@ By default, the standalone server has no authentication. To secure your deployme
 If the frontend build is not available, the server starts in API-only mode and serves only the REST API. This is useful when running the frontend separately during development.
 
 :::tip
-In development, use `npm run dev` instead, which starts the Vite dev server with hot reload alongside the backend.
+In development, use `npm run dev:standalone` instead, which starts the backend, the standalone server, and the Vite dev server (with hot reload) together. The Vite dev server binds all interfaces, so the dev UI is reachable at `http://<your-host>:4002` from other devices on the network.
 :::
