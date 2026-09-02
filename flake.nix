@@ -30,6 +30,11 @@
                 pkgs.typescript
                 pkgs.typescript-language-server
               ];
+              # Prebuilt native node modules (sharp/libvips) link against
+              # libstdc++.so.6, which is not on the loader path by default.
+              shellHook = ''
+                export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc ]}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+              '';
             };
         });
     };
